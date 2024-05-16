@@ -28,6 +28,7 @@ export const authSlice = createSlice({
     setLogoutData(state: any) {
       state.token = null;
       state.userDetails = null;
+      state.isAuthenticated = false;
     },
   },
 });

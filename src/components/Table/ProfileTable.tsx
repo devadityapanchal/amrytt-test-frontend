@@ -31,16 +31,16 @@ interface Column {
 const columns: readonly Column[] = [
   { id: "firstName", label: "First Name", minWidth: 170 },
   { id: "lastName", label: "Last Name", minWidth: 100 },
-  {
-    id: "age",
-    label: "Age",
-    minWidth: 170,
-  },
-  {
-    id: "gender",
-    label: "Gender",
-    minWidth: 170,
-  },
+  // {
+  //   id: "age",
+  //   label: "Age",
+  //   minWidth: 170,
+  // },
+  // {
+  //   id: "gender",
+  //   label: "Gender",
+  //   minWidth: 170,
+  // },
   {
     id: "country",
     label: "Country",
@@ -63,7 +63,7 @@ const columns: readonly Column[] = [
   },
 ];
 
-export default function ProfileTable() {
+export default function ProfileTable({ refreshData }: { refreshData: Date }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [rows, setRows] = React.useState<
@@ -100,7 +100,7 @@ export default function ProfileTable() {
         console.log("error: ", error);
       }
     })();
-  }, []);
+  }, [refreshData]);
 
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>

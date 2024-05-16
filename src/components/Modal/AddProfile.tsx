@@ -10,7 +10,10 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import Select from "react-select";
-import Creatable from "react-select/creatable";
+import { useEffect, useState } from "react";
+import { City, Country, State } from "country-state-city";
+import { createProfile } from "../../services/Profile";
+import { useNavigate } from "react-router-dom";
 
 const initialValues = {
   firstName: "",
@@ -19,28 +22,54 @@ const initialValues = {
   age: "",
   gender: "",
   hobbies: [],
+  country: null,
+  state: null,
+  city: null,
 };
-
-const genders = [
-  { value: "male", label: "Male" },
-  { value: "female", label: "Female" },
-  { value: "other", label: "Other" },
-];
-
-const hobbiesOptions = [
-  { value: "reading", label: "Reading" },
-  { value: "cooking", label: "Cooking" },
-  { value: "sports", label: "Sports" },
-  // Add more hobby options as needed
-];
 
 const AddProfile = ({
   isOpen,
   onClose,
+  setRefreshData,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  setRefreshData: React.Dispatch<React.SetStateAction<Date>>;
 }) => {
+  const navigate = useNavigate();
+
+  const [countries, setCountries] = useState<
+    { value: string; label: string; code: string }[]
+  >([]);
+  const [states, setStates] = useState<
+    { value: string; label: string; code: string; countryCode: string }[]
+  >([]);
+  const [cities, setCities] = useState<{ value: string; label: string }[]>([]);
+
+  useEffect(() => {
+    const allCountries = Country.getAllCountries();
+    setCountries(
+      allCountries.map((x) => ({
+        value: x.name,
+        label: x.name,
+        code: x.isoCode,
+      }))
+    );
+  }, []);
+
+  const handleCountrySelect = (code: string) => {
+    const states = State.getStatesOfCountry(code);
+    setStates(
+      states.map((x) => ({
+        value: x.name,
+        label: x.name,
+        code: x.isoCode,
+        countryCode: code,
+      }))
+    );
+    setCities([]);
+  };
+
   const formik = useFormik({
     initialValues,
     validate: (values) => {
@@ -70,13 +99,54 @@ const AddProfile = ({
         errors.hobbies = "At least one hobby is required";
       }
 
+      if (!values.country) {
+        errors.country = "Country is required";
+      }
+
+      if (!values.state) {
+        errors.state = "State is required";
+      }
+
+      if (!values.city) {
+        errors.city = "City is required";
+      }
+
       return errors;
     },
-    onSubmit: (values) => {
+    onSubmit: async (values, { resetForm }) => {
       console.log("Form submitted with values:", values);
+      try {
+        const formData = new FormData();
+        formData.append("firstName", values.firstName);
+        formData.append("lastName", values.lastName);
+        formData.append("age", values.age);
+        formData.append("gender", values.gender);
+        formData.append("hobbies", JSON.stringify(values.hobbies));
+        formData.append("country", values.country as any);
+        formData.append("state", values.state as any);
+        formData.append("city", values.city as any);
+        formData.append("profile_image", values.profile as any);
+
+        await createProfile(formData);
+        onClose();
+        resetForm();
+        setRefreshData(new Date());
+      } catch (error) {
+        console.log("error: ", error);
+      }
       onClose();
     },
   });
+
+  const handleStateSelect = (countryCode: string, stateCode: string) => {
+    const cities = City.getCitiesOfState(countryCode, stateCode);
+    setCities(
+      cities.map((x) => ({
+        value: x.name,
+        label: x.name,
+      }))
+    );
+  };
 
   return (
     <Modal
@@ -94,12 +164,14 @@ const AddProfile = ({
           p: 4,
           bgcolor: "background.paper",
           borderRadius: 4,
+          overflowY: "scroll",
+          height: "80%",
         }}
       >
         <Typography variant="h6" gutterBottom>
           Add New Profile
         </Typography>
-        <form onSubmit={formik.handleSubmit}>
+        <Box mt={2} component="form" onSubmit={formik.handleSubmit}>
           <TextField
             fullWidth
             id="firstName"
@@ -110,6 +182,8 @@ const AddProfile = ({
             error={formik.touched.firstName && Boolean(formik.errors.firstName)}
             helperText={formik.touched.firstName && formik.errors.firstName}
           />
+          <br />
+          <br />
           <TextField
             fullWidth
             id="lastName"
@@ -120,7 +194,8 @@ const AddProfile = ({
             error={formik.touched.lastName && Boolean(formik.errors.lastName)}
             helperText={formik.touched.lastName && formik.errors.lastName}
           />
-          {/* Profile Image Selector */}
+          <br />
+          <br />
           <TextField
             fullWidth
             type="file"
@@ -132,6 +207,8 @@ const AddProfile = ({
             error={formik.touched.profile && Boolean(formik.errors.profile)}
             helperText={formik.touched.profile && formik.errors.profile}
           />
+          <br />
+          <br />
           <TextField
             fullWidth
             type="number"
@@ -143,18 +220,26 @@ const AddProfile = ({
             error={formik.touched.age && Boolean(formik.errors.age)}
             helperText={formik.touched.age && formik.errors.age}
           />
-          {/* Gender Select */}
+          <br />
+          <br />
           <FormControl
             fullWidth
             error={formik.touched.gender && Boolean(formik.errors.gender)}
           >
             <FormLabel>Gender</FormLabel>
             <Select
-              options={genders}
-              value={genders.find(
-                (option) => option.value === formik.values.gender
-              )}
-              onChange={(option) =>
+              options={
+                [
+                  { value: "male", label: "Male" },
+                  { value: "female", label: "Female" },
+                  { value: "other", label: "Other" },
+                ] as any
+              }
+              value={{
+                label: formik.values.gender,
+                value: formik.values.gender,
+              }}
+              onChange={(option: any) =>
                 formik.setFieldValue("gender", option?.value)
               }
             />
@@ -162,22 +247,27 @@ const AddProfile = ({
               <FormHelperText>{formik.errors.gender}</FormHelperText>
             )}
           </FormControl>
-          {/* Hobbies Select */}
+          <br />
+          <br />
           <FormControl
             fullWidth
             error={formik.touched.hobbies && Boolean(formik.errors.hobbies)}
           >
             <FormLabel>Hobbies</FormLabel>
-            <Creatable
-              options={hobbiesOptions}
+            <Select
+              options={
+                [
+                  { value: "reading", label: "Reading" },
+                  { value: "cooking", label: "Cooking" },
+                  { value: "sports", label: "Sports" },
+                ] as any
+              }
               isMulti
-              value={hobbiesOptions.filter((option) =>
-                (formik.values.hobbies as string[]).includes(option.value)
-              )}
-              onChange={(options) =>
+              value={formik.values.hobbies.map((x) => ({ value: x, label: x }))}
+              onChange={(options: any) =>
                 formik.setFieldValue(
                   "hobbies",
-                  options.map((option) => option.value)
+                  options.map((option: any) => option.value)
                 )
               }
             />
@@ -185,6 +275,71 @@ const AddProfile = ({
               <FormHelperText>{formik.errors.hobbies}</FormHelperText>
             )}
           </FormControl>
+          <br />
+          <br />
+          <FormControl
+            fullWidth
+            error={formik.touched.country && Boolean(formik.errors.country)}
+          >
+            <FormLabel>Country</FormLabel>
+            <Select
+              options={countries}
+              value={countries.find(
+                (option) => option.value === formik.values.country
+              )}
+              onChange={(option) => {
+                formik.setFieldValue("country", option?.value);
+                handleCountrySelect(option?.code as string);
+              }}
+            />
+            {formik.touched.country && formik.errors.country && (
+              <FormHelperText>{formik.errors.country}</FormHelperText>
+            )}
+          </FormControl>
+          <br />
+          <br />
+          <FormControl
+            fullWidth
+            error={formik.touched.state && Boolean(formik.errors.state)}
+          >
+            <FormLabel>State</FormLabel>
+            <Select
+              options={states}
+              value={states.find(
+                (option) => option.value === formik.values.state
+              )}
+              onChange={(option) => {
+                formik.setFieldValue("state", option?.value);
+                handleStateSelect(
+                  option?.countryCode as string,
+                  option?.code as string
+                );
+              }}
+            />
+            {formik.touched.state && formik.errors.state && (
+              <FormHelperText>{formik.errors.state}</FormHelperText>
+            )}
+          </FormControl>
+          <br />
+          <br />
+          <FormControl
+            fullWidth
+            error={formik.touched.city && Boolean(formik.errors.city)}
+          >
+            <FormLabel>City</FormLabel>
+            <Select
+              options={cities}
+              value={cities.find(
+                (option) => option.value === formik.values.city
+              )}
+              onChange={(option) => formik.setFieldValue("city", option?.value)}
+            />
+            {formik.touched.city && formik.errors.city && (
+              <FormHelperText>{formik.errors.city}</FormHelperText>
+            )}
+          </FormControl>
+          <br />
+          <br />
           <Button
             type="submit"
             variant="contained"
@@ -193,10 +348,15 @@ const AddProfile = ({
           >
             Submit
           </Button>
-          <Button variant="contained" color="inherit" sx={{ mt: 2, ml: 2 }}>
-            close
+          <Button
+            variant="contained"
+            color="inherit"
+            sx={{ mt: 2, ml: 2 }}
+            onClick={onClose}
+          >
+            Close
           </Button>
-        </form>
+        </Box>
       </Box>
     </Modal>
   );
