@@ -64,6 +64,18 @@ const LandingPage = () => {
           adipiscing elit. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
           Duis sagittis ipsum.
         </Typography>
+        <Typography variant="body1" paragraph>
+          Mauris risus magna, rhoncus eget ultricies eu, accumsan id lectus.
+          Pellentesque habitant morbi tristique senectus et netus et malesuada
+          fames ac turpis egestas. Sed ornare arcu a lorem posuere, ac sagittis
+          ipsum posuere.
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Donec laoreet arcu in est euismod, sit amet vestibulum leo pulvinar.
+          Sed vel ex non ante malesuada tincidunt sit amet at erat. Vestibulum
+          euismod libero nec nulla euismod, sit amet dictum magna feugiat.
+          Vivamus vel turpis vitae risus sagittis eleifend.
+        </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <ImageCard>

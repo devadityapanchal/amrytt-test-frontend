@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { Formik, Field } from "formik";
-import { Button, TextField, Typography, Container } from "@mui/material";
+import { Button, TextField, Typography, Container, Link } from "@mui/material";
 import { styled } from "@mui/system";
 import { useDispatch } from "react-redux";
 import {
@@ -51,6 +51,10 @@ const LoginForm: React.FC = () => {
     [dispatch, navigate]
   );
 
+  const handleRegisterRedirect = () => {
+    navigate("/register");
+  };
+
   return (
     <Container style={{ marginTop: "100px" }} component="main" maxWidth="xs">
       <Paper>
@@ -94,6 +98,17 @@ const LoginForm: React.FC = () => {
               >
                 Sign In
               </SubmitButton>
+              <br />
+              <Typography variant="body2" align="center">
+                Don't have an account?{" "}
+                <Link
+                  component="button"
+                  variant="body2"
+                  onClick={handleRegisterRedirect}
+                >
+                  Register
+                </Link>
+              </Typography>
             </FormContainer>
           )}
         </Formik>

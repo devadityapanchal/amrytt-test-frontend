@@ -57,7 +57,7 @@ const columns: readonly Column[] = [
     minWidth: 170,
   },
   {
-    id: "view", // New column for viewing profile
+    id: "view",
     label: "View",
     minWidth: 100,
   },
@@ -127,7 +127,6 @@ export default function ProfileTable({ refreshData }: { refreshData: Date }) {
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id}>
                     {columns.map((column) => {
                       if (column.id === "view") {
-                        // Render eye icon button for the "View" column
                         return (
                           <TableCell key={column.id} align={column.align}>
                             <Link to={`/dashboard/profile/${row._id}`}>

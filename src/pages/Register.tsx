@@ -1,6 +1,13 @@
 import React, { useCallback } from "react";
 import { Formik, Field } from "formik";
-import { Button, TextField, Typography, Container, Grid } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Typography,
+  Container,
+  Grid,
+  Link,
+} from "@mui/material";
 import { styled } from "@mui/system";
 import { useDispatch } from "react-redux";
 import { setUserDetails, setLogoutData } from "../redux/slices/AuthSlice";
@@ -44,6 +51,10 @@ const Register: React.FC = () => {
     },
     [dispatch, navigate]
   );
+
+  const handleLoginRedirect = () => {
+    navigate("/login");
+  };
 
   return (
     <Container style={{ marginTop: "100px" }} component="main" maxWidth="xs">
@@ -117,6 +128,17 @@ const Register: React.FC = () => {
               >
                 Register
               </SubmitButton>
+              <br />
+              <Typography variant="body2" align="center">
+                Already registered with us?{" "}
+                <Link
+                  component="button"
+                  variant="body2"
+                  onClick={handleLoginRedirect}
+                >
+                  Login
+                </Link>
+              </Typography>
             </FormContainer>
           )}
         </Formik>
